@@ -48,7 +48,6 @@ def dampen_levels(levels: list[list[int]]) -> list[list[int]]:
             dampened_levels[level_ind] = dampen_level(
                 dampened_levels[level_ind], index[0]
             )
-    #    print(dampened_levels)
     return dampened_levels
 
 
