@@ -8,12 +8,20 @@ def main():
     with open("day13/input.txt") as machine_list:
         machine_list = list(machine_list)
         machines = []
+        corrected_machines = []
         for i in range(0, len(machine_list), 4):
             _, ax, ay = re.split(r"X\+|, Y\+", machine_list[i].rstrip())
             _, bx, by = re.split(r"X\+|, Y\+", machine_list[i + 1].rstrip())
             _, px, py = re.split("X=|, Y=", machine_list[i + 2].rstrip())
             machines.append(
                 [(int(ax), int(ay)), (int(bx), int(by)), (int(px), int(py))]
+            )
+            corrected_machines.append(
+                [
+                    (int(ax), int(ay)),
+                    (int(bx), int(by)),
+                    (int(px) + 10000000000000, int(py) + 10000000000000),
+                ]
             )
         pushes = []
         for machine in machines:
@@ -24,6 +32,18 @@ def main():
                     3 * a + b
                     for sol, a, b in pushes
                     if sol and 0 <= a <= 100 and 0 <= b <= 100
+                ]
+            )
+        )
+        corrected_pushes = []
+        for corrected_machine in corrected_machines:
+            corrected_pushes.append(calculate_win(corrected_machine))
+        print(
+            sum(
+                [
+                    3 * a + b
+                    for sol, a, b in corrected_pushes
+                    if sol and 0 <= a and 0 <= b
                 ]
             )
         )
@@ -38,7 +58,7 @@ def calculate_win(
     if a.is_integer and b.is_integer:
         return True, a, b
     return False, None, None
-    # 3*a*ax+ b*bx = px
+    # 3*a*ax + b*bx = px
     # 3*a*ay + b*by = py
 
 
