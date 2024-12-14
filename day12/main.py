@@ -87,37 +87,13 @@ def map_region(
         sides += 2
     elif (not up or not down) and (not right or not left):
         sides += 1
-    if (
-        up
-        and right
-        and pos[0] > 0
-        and pos[1] < len(plots[0]) - 1
-        and plots[pos[0] - 1][pos[1] + 1] != plants
-    ):
+    if up and right and plots[pos[0] - 1][pos[1] + 1] != plants:
         sides += 1
-    if (
-        down
-        and right
-        and pos[0] < len(plots) - 1
-        and pos[1] < len(plots[0]) - 1
-        and plots[pos[0] + 1][pos[1] + 1] != plants
-    ):
+    if down and right and plots[pos[0] + 1][pos[1] + 1] != plants:
         sides += 1
-    if (
-        down
-        and left
-        and pos[0] < len(plots) - 1
-        and pos[1] > 0
-        and plots[pos[0] + 1][pos[1] - 1] != plants
-    ):
+    if down and left and plots[pos[0] + 1][pos[1] - 1] != plants:
         sides += 1
-    if (
-        up
-        and left
-        and pos[0] > 0
-        and pos[1] > 0
-        and plots[pos[0] - 1][pos[1] - 1] != plants
-    ):
+    if up and left and plots[pos[0] - 1][pos[1] - 1] != plants:
         sides += 1
     return area, perimeter, sides, checked
 
