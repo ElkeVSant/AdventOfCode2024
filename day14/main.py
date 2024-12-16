@@ -15,7 +15,16 @@ def main():
     # room = (11, 7)
     room = (101, 103)
     print(prod(count_quadrants(move(pos, vel, room, 100), room)))
-    # print(move([pos[10]], [vel[10]], (11, 7), 2))
+
+    entropy = 216027840
+    for step in range(1, 10000):
+        pos = move(pos, vel, room, 1)
+        safety_score = prod(count_quadrants(pos, room))
+        if safety_score < entropy:
+            entropy = safety_score
+            _ = display(pos, room)
+            print(step)
+            print("")
 
 
 def move(
@@ -72,6 +81,17 @@ def count_quadrants(
             elif right:
                 q4 += 1
     return q1, q2, q3, q4
+
+
+def display(pos: list[tuple[int, int]], room: tuple[int, int]) -> list[str]:
+    pattern = [" " * room[0]] * room[1]
+    for p in pos:
+        px = p[0]
+        py = p[1]
+        pattern[py] = pattern[py][:px] + "x" + pattern[py][px + 1 :]
+    for row in pattern:
+        print(row)
+    return pattern
 
 
 if __name__ == "__main__":
