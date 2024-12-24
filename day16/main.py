@@ -78,8 +78,6 @@ def dijkstra(
     distances[start.position[0]][start.position[1]][start.direction] = 0
     while len(to_visit):
         node = heappop(to_visit)
-        # if node.position == (7, 5):
-        #     print(node)
         if not math.isnan(
             distances[node.position[0] - 1][node.position[1]][Direction("N")]
         ) and distances[node.position[0] - 1][node.position[1]][
