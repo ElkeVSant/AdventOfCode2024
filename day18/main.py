@@ -9,24 +9,21 @@ def main():
     with open("day18/input.txt") as byte_positions:
         for pos in byte_positions:
             positions.append(tuple([int(c) for c in pos.split(",")]))
+    # memory_space = (7, 7)
     memory_space = (71, 71)
     memory = [["." for _ in (range(memory_space[0]))] for _ in (range(memory_space[1]))]
+    original_memory = [row[:] for row in memory]
+    # simulate(positions, memory, 12)
     simulate(positions, memory, 1024)
     distances = dijkstra(memory)
-    # for line in distances:
-    #     print(line)
     mark_path(memory, distances)
     print(len([cell for row in memory for cell in row if cell == "O"]) - 1)
-    # print(memory)
-    # for line in memory:
-    #     print("".join(line))
+    print(",".join(str(c) for c in find_blocking_byte(original_memory, positions)))
 
 
 def simulate(positions: list[tuple[int, int]], memory: list[list[str]], time: int = 1):
     for ns in range(time):
         memory[positions[ns][1]][positions[ns][0]] = "#"
-    # for line in memory:
-    #     print("".join(line))
 
 
 def dijkstra(memory: list[list[str]]) -> list[list[float]]:
@@ -100,8 +97,23 @@ def mark_path(memory: list[list[str]], distances: list[list[float]]):
             and memory[pos[1]][pos[0] + 1] != "O"
         ):
             next[(pos[0] + 1, pos[1])] = distances[pos[1]][pos[0] + 1]
+        if len(next) == 0:
+            return False
         pos = min(next.items(), key=lambda x: x[1])[0]
     memory[pos[1]][pos[0]] = "O"
+    return True
+
+
+def find_blocking_byte(
+    memory: list[list[str]], positions: list[tuple[int, int]]
+) -> tuple[int, int]:
+    for pos in positions:
+        simulate([pos], memory)
+        distances = dijkstra(memory)
+        memory_copy = [row[:] for row in memory]
+        if not mark_path(memory_copy, distances):
+            return pos
+    return (-1, -1)
 
 
 if __name__ == "__main__":
