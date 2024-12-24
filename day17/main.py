@@ -11,7 +11,18 @@ def main():
     _, a, b, c = re.split("\n{0,1}Register .: ", registers)
     registers = {"A": int(a), "B": int(b), "C": int(c)}
     program = [int(op) for op in program[9:].rstrip().split(",")]
-    print(",".join([str(output) for output in output(registers, program[:16])]))
+    out = output(registers, program)
+    print(",".join([str(val) for val in out]))
+    registers["A"] = pow(8, len(program) - 1)
+    print(calibrate(registers, program))
+
+
+def calibrate(registers: dict[str, int], program: list[int]) -> int:
+    length = len(program)
+    for i in range(1, length + 1):
+        while output(registers, program)[-i:] != program[-i:]:
+            registers["A"] += pow(8, length - i)
+    return registers["A"]
 
 
 class Opcode(Enum):
