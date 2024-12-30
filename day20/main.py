@@ -3,84 +3,116 @@
 
 from heapq import heapify, heappush, heappop
 import math
+# import sys
 
 
 def main():
     with open("day20/input.txt") as racetrack:
         racetrack = [row.rstrip() for row in racetrack]
-    fastest_time = dijkstra(racetrack)
-    # for row in racetrack:
-    #     print(row)
-    faster_times = 0
-    for pos in [
-        (r, c)
-        for r, row in enumerate(racetrack)
-        for c, char in enumerate(row)
-        if char == "#" and 0 < r < len(racetrack) - 1 and 0 < c < len(racetrack[0]) - 1
-    ]:
-        cheat_racetrack = [row for row in racetrack]
-        cheat_racetrack[pos[0]] = (
-            cheat_racetrack[pos[0]][: pos[1]]
-            + "."
-            + cheat_racetrack[pos[0]][pos[1] + 1 :]
-        )
-        # print(dijkstra(cheat_racetrack))
-        if fastest_time - dijkstra(cheat_racetrack) >= 100:
-            faster_times += 1
-    print(faster_times)
+    distances, path = dijkstra(racetrack)
+    cheats_2_ps = 0
+    cheats_20_ps = 0
+    for pos in path:
+        cheats_2_ps += cheat(pos, distances, 2)
+        cheats_20_ps += cheat(pos, distances, 20)
+    print(cheats_2_ps)
+    print(cheats_20_ps)
 
 
-def dijkstra(racetrack: list[str]) -> float:
-    distances = [
-        [float("inf") if pos in [".", "S", "E"] else float("nan") for pos in row]
-        for row in racetrack
-    ]
-    start = [
-        (r, c)
-        for r, row in enumerate(racetrack)
-        if "S" in row
-        for c, char in enumerate(row)
-        if char == "S"
-    ][0]
-    distances[start[0]][start[1]] = 0
-    to_visit = []
-    heapify(to_visit)
-    heappush(to_visit, start)
+def dijkstra(
+    racetrack: list[str],
+    distances: list[list[float]] | None = None,
+    to_visit: list[tuple[int, int]] | None = None,
+) -> tuple[list[list[float]], set[tuple[int, int]]]:
+    distances = (
+        distances
+        if distances
+        else [
+            [float("inf") if pos in [".", "S", "E"] else float("nan") for pos in row]
+            for row in racetrack
+        ]
+    )
+    if not to_visit:
+        start = [
+            (r, c)
+            for r, row in enumerate(racetrack)
+            if "S" in row
+            for c, char in enumerate(row)
+            if char == "S"
+        ][0]
+        distances[start[0]][start[1]] = 0
+        to_visit = []
+        heapify(to_visit)
+        heappush(to_visit, start)
+    path = set()
+    cheat_options = []
     while len(to_visit):
         pos = heappop(to_visit)
+        path.add(pos)
         distance = distances[pos[0]][pos[1]] + 1
         if (
-            not math.isnan(distances[pos[0] - 1][pos[1]])
+            racetrack[pos[0] - 1][pos[1]] != "#"
             and distances[pos[0] - 1][pos[1]] > distance
         ):
             heappush(to_visit, (pos[0] - 1, pos[1]))
             distances[pos[0] - 1][pos[1]] = distance
+        elif pos[0] - 1 > 0 and racetrack[pos[0] - 1][pos[1]] == "#":
+            cheat_distances = [row[:] for row in distances]
+            cheat_distances[pos[0] - 1][pos[1]] = distance
+            cheat_options.append(((pos[0] - 1, pos[1]), pos, distance))
         if (
-            not math.isnan(distances[pos[0] + 1][pos[1]])
+            racetrack[pos[0] + 1][pos[1]] != "#"
             and distances[pos[0] + 1][pos[1]] > distance
         ):
             heappush(to_visit, (pos[0] + 1, pos[1]))
             distances[pos[0] + 1][pos[1]] = distance
+        elif pos[0] + 1 < len(racetrack) - 1 and racetrack[pos[0] + 1][pos[1]] == "#":
+            cheat_distances = [row[:] for row in distances]
+            cheat_distances[pos[0] + 1][pos[1]] = distance
+            cheat_options.append(((pos[0] + 1, pos[1]), pos, distance))
         if (
-            not math.isnan(distances[pos[0]][pos[1] - 1])
+            racetrack[pos[0]][pos[1] - 1] != "#"
             and distances[pos[0]][pos[1] - 1] > distance
         ):
             heappush(to_visit, (pos[0], pos[1] - 1))
             distances[pos[0]][pos[1] - 1] = distance
+        elif pos[1] - 1 > 0 and racetrack[pos[0]][pos[1] - 1] == "#":
+            cheat_distances = [row[:] for row in distances]
+            cheat_distances[pos[0]][pos[1] - 1] = distance
+            cheat_options.append(((pos[0], pos[1] - 1), pos, distance))
         if (
-            not math.isnan(distances[pos[0]][pos[1] + 1])
+            racetrack[pos[0]][pos[1] + 1] != "#"
             and distances[pos[0]][pos[1] + 1] > distance
         ):
             heappush(to_visit, (pos[0], pos[1] + 1))
             distances[pos[0]][pos[1] + 1] = distance
-    end = [
-        (r, c)
-        for r, row in enumerate(racetrack)
-        if "E" in row
-        for c, char in enumerate(row)
-        if char == "E"
-    ][0]
-    return distances[end[0]][end[1]]
+        elif (
+            pos[1] + 1 < len(racetrack[0]) - 1 and racetrack[pos[0]][pos[1] + 1] == "#"
+        ):
+            cheat_distances = [row[:] for row in distances]
+            cheat_distances[pos[0]][pos[1] + 1] = distance
+            cheat_options.append(((pos[0], pos[1] + 1), pos, distance))
+    return distances, path
+
+
+def cheat(pos: tuple[int, int], distances: list[list[float]], duration: int) -> int:
+    cheats = 0
+    for dr in range(-duration, duration + 1):
+        row = pos[0] + dr
+        if not 1 <= row <= len(distances) - 2:
+            continue
+        for dc in range(-(duration - abs(dr)), duration - abs(dr) + 1):
+            col = pos[1] + dc
+            if not 1 <= col <= len(distances[0]) - 2:
+                continue
+            legal_distance = distances[row][col]
+            cheat_distance = distances[pos[0]][pos[1]] + abs(dr) + abs(dc)
+            if (
+                not math.isnan(legal_distance)
+                and legal_distance - cheat_distance >= 100
+            ):
+                cheats += 1
+    return cheats
 
 
 if __name__ == "__main__":
